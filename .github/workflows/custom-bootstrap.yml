@@ -1,0 +1,32 @@
+name: Build custom-prefix bootstrap
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+
+      - name: Build bootstrap for custom package name (aarch64 only, first test)
+        env:
+          TERMUX_APP_PACKAGE: com.vinz.terminal
+        run: |
+          ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64 2>&1 | tee build.log
+
+      - name: Upload build log always (even on failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+
+      - name: Upload bootstrap zip if it got produced
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootstrap-aarch64
+          path: bootstrap-aarch64.zip
+          if-no-files-found: ignore
